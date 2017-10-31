@@ -2,10 +2,13 @@ package samples.stockticker;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -19,7 +22,7 @@ import retrofit2.Response;
 import samples.stockticker.models.DayPrice;
 import samples.stockticker.models.StockPrices;
 
-class MainActivity extends Activity {
+public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
 
     @BindView(R.id.current_price) TextView currentPrice;
@@ -71,5 +74,20 @@ class MainActivity extends Activity {
 
                     }
                 });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_activity, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int id, MenuItem item) {
+        if (item.getItemId() == R.id.menu_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
+        return super.onMenuItemSelected(id, item);
     }
 }
