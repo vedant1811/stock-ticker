@@ -2,13 +2,16 @@ package samples.stockticker;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -43,37 +46,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
-        api.daily("GOOGL")
-                .enqueue(new Callback<StockPrices>() {
-                    @SuppressLint("SetTextI18n")
-                    @Override
-                    public void onResponse(@NonNull Call<StockPrices> call, @NonNull Response<StockPrices> response) {
-                        NumberFormat numberFormat = NumberFormat.getNumberInstance();
-                        DayPrice price = response.body().timeSeriesDaily.values().iterator().next();
-                        double difference = price.close - price.open;
-                        currentPrice.setText("$" + numberFormat.format(price.close));
-                        int color;
-                        String sign;
-                        if (difference > 0) {
-                            color = getResources().getColor(R.color.green_number);
-                            sign = "+";
-                        } else {
-                            color = getResources().getColor(R.color.red_number);
-                            sign = "-";
-                        }
-                        priceChange.setText(sign + numberFormat.format(difference));
-                        percentageChange.setText(String.format("%s%.2f%%", sign, difference / price.open * 100));
-                        currentPrice.setTextColor(color);
-                        percentageChange.setTextColor(color);
-                        priceChange.setTextColor(color);
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<StockPrices> call, @NonNull Throwable t) {
-
-                    }
-                });
+        fetchPrices();
     }
 
     @Override
@@ -89,5 +62,69 @@ public class MainActivity extends Activity {
             return true;
         }
         return super.onMenuItemSelected(id, item);
+    }
+
+    private void fetchPrices() {
+        final String symbol = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(SettingsActivity.KEY_SYMBOL, "GOOG");
+
+        api.daily(symbol)
+                .enqueue(new Callback<StockPrices>() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onResponse(@NonNull Call<StockPrices> call, @NonNull Response<StockPrices> response) {
+                        try {
+                            NumberFormat numberFormat = NumberFormat.getNumberInstance();
+                            DayPrice price = response.body().timeSeriesDaily.values().iterator().next();
+                            double difference = price.close - price.open;
+                            currentPrice.setText("$" + numberFormat.format(price.close));
+                            int color;
+                            String sign;
+                            if (difference > 0) {
+                                color = getResources().getColor(R.color.green_number);
+                                sign = "+";
+                            } else {
+                                color = getResources().getColor(R.color.red_number);
+                                sign = "-";
+                            }
+                            priceChange.setText(sign + numberFormat.format(difference));
+                            percentageChange.setText(String.format("%s%.2f%%", sign, difference / price.open * 100));
+                            currentPrice.setTextColor(color);
+                            percentageChange.setTextColor(color);
+                            priceChange.setTextColor(color);
+
+                            progressBar.setVisibility(View.GONE);
+                        } catch (NullPointerException e) {
+                            showDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<StockPrices> call, @NonNull Throwable t) {
+                        showDialog();
+                    }
+                });
+    }
+
+    private void showDialog() {
+        final String symbol = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(SettingsActivity.KEY_SYMBOL, "GOOG");
+
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Error")
+                .setMessage("Error Processing Request for " + symbol)
+                .setPositiveButton("Set Symbol", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                    }
+                })
+                .setNegativeButton("Try Again", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        fetchPrices();
+                    }
+                })
+                .show();
     }
 }
