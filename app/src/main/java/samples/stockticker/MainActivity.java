@@ -15,7 +15,15 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,6 +40,7 @@ public class MainActivity extends Activity {
     @BindView(R.id.price_change) TextView priceChange;
     @BindView(R.id.percentage_change) TextView percentageChange;
     @BindView(R.id.progress_bar) ProgressBar progressBar;
+    @BindView(R.id.chart) LineChart chart;
 
     private Api api;
 
@@ -92,6 +101,19 @@ public class MainActivity extends Activity {
                             currentPrice.setTextColor(color);
                             percentageChange.setTextColor(color);
                             priceChange.setTextColor(color);
+
+                            // setup graph
+                            List<Entry> entries = new ArrayList<Entry>();
+                            int max = response.body().timeSeriesDaily.size();
+                            for (Map.Entry<String, DayPrice> mapEntry : response.body().timeSeriesDaily.entrySet()) {
+
+                                entries.add(0, new Entry(max - entries.size(), (float) mapEntry.getValue().close));
+                            }
+                            LineDataSet dataSet = new LineDataSet(entries, "USD");
+                            LineData lineData = new LineData(dataSet);
+                            chart.setData(lineData);
+                            chart.invalidate(); // refresh
+                            chart.setVisibility(View.VISIBLE);
 
                             progressBar.setVisibility(View.GONE);
                         } catch (NullPointerException e) {
