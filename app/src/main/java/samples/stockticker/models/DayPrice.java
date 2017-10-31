@@ -7,21 +7,21 @@ import com.google.gson.annotations.SerializedName;
  * Created by vedant on 31/10/17.
  */
 
-class DayPrice {
+public class DayPrice {
 
     @SerializedName("1. open")
     @Expose
-    public String open;
+    public double open;
     @SerializedName("2. high")
     @Expose
-    public String high;
+    public double high;
     @SerializedName("3. low")
     @Expose
-    public String low;
+    public double low;
     @SerializedName("4. close")
     @Expose
-    public String close;
+    public double close;
     @SerializedName("5. volume")
     @Expose
-    public String volume;
+    public int volume;
 }
