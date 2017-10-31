@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
     private void fetchPrices() {
         final String symbol = PreferenceManager.getDefaultSharedPreferences(this)
                 .getString(SettingsActivity.KEY_SYMBOL, "GOOG");
-
+        getActionBar().setTitle(symbol);
         api.daily(symbol)
                 .enqueue(new Callback<StockPrices>() {
                     @SuppressLint("SetTextI18n")
@@ -117,12 +117,14 @@ public class MainActivity extends Activity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                        dialog.dismiss();
                     }
                 })
                 .setNegativeButton("Try Again", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         fetchPrices();
+                        dialog.dismiss();
                     }
                 })
                 .show();
