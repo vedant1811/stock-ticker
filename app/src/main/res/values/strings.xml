@@ -1,4 +1,3 @@
 <resources>
     <string name="app_name">StockTicker</string>
-    <string name="api_key" translatable="false">TE0ARFPBN00QDMRV</string>
 </resources>
